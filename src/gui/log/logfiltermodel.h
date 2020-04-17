@@ -1,6 +1,6 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
- * Copyright (C) 2015, 2018  Vladimir Golovnev <glassez@yandex.ru>
+ * Copyright (C) 2019  sledgehammer999 <hammered999@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,28 +28,21 @@
 
 #pragma once
 
-#include <memory>
+#include <QSortFilterProxyModel>
 
-#include <libtorrent/fwd.hpp>
+#include "base/logger.h"
 
-#include <QDir>
-#include <QObject>
-
-class QByteArray;
-
-class ResumeDataSavingManager : public QObject
+class LogFilterModel : public QSortFilterProxyModel
 {
     Q_OBJECT
-    Q_DISABLE_COPY(ResumeDataSavingManager)
+    Q_DISABLE_COPY(LogFilterModel)
 
 public:
-    explicit ResumeDataSavingManager(const QString &resumeFolderPath);
-
-public slots:
-    void save(const QString &filename, const QByteArray &data) const;
-    void save(const QString &filename, const std::shared_ptr<lt::entry> &data) const;
-    void remove(const QString &filename) const;
+    explicit LogFilterModel(Log::MsgTypes types = Log::ALL, QObject *parent = nullptr);
+    void setMessageTypes(Log::MsgTypes types);
 
 private:
-    const QDir m_resumeDataDir;
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
+
+    Log::MsgTypes m_types;
 };

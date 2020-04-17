@@ -1,6 +1,7 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
- * Copyright (C) 2015, 2018  Vladimir Golovnev <glassez@yandex.ru>
+ * Copyright (C) 2020  Prince Gupta <jagannatharjun11@gmail.com>
+ * Copyright (C) 2019  sledgehammer999 <hammered999@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,28 +29,19 @@
 
 #pragma once
 
-#include <memory>
+#include <QListView>
 
-#include <libtorrent/fwd.hpp>
-
-#include <QDir>
-#include <QObject>
-
-class QByteArray;
-
-class ResumeDataSavingManager : public QObject
+class LogListView : public QListView
 {
     Q_OBJECT
-    Q_DISABLE_COPY(ResumeDataSavingManager)
+    Q_DISABLE_COPY(LogListView)
 
 public:
-    explicit ResumeDataSavingManager(const QString &resumeFolderPath);
+    explicit LogListView(QWidget *parent = nullptr);
 
 public slots:
-    void save(const QString &filename, const QByteArray &data) const;
-    void save(const QString &filename, const std::shared_ptr<lt::entry> &data) const;
-    void remove(const QString &filename) const;
+    void copySelection() const;
 
 private:
-    const QDir m_resumeDataDir;
+    void keyPressEvent(QKeyEvent *event) override;
 };

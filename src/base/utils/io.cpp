@@ -1,6 +1,6 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
- * Copyright (C) 2015, 2018  Vladimir Golovnev <glassez@yandex.ru>
+ * Copyright (C) 2020  Mike Tzou (Chocobo1)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,30 +26,50 @@
  * exception statement from your version.
  */
 
-#pragma once
+#include "io.h"
 
-#include <memory>
+#include <QByteArray>
+#include <QFileDevice>
 
-#include <libtorrent/fwd.hpp>
-
-#include <QDir>
-#include <QObject>
-
-class QByteArray;
-
-class ResumeDataSavingManager : public QObject
+Utils::IO::FileDeviceOutputIterator::FileDeviceOutputIterator(QFileDevice &device, const int bufferSize)
+    : m_device {&device}
+    , m_buffer {std::make_shared<QByteArray>()}
+    , m_bufferSize {bufferSize}
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(ResumeDataSavingManager)
+    m_buffer->reserve(bufferSize);
+}
 
-public:
-    explicit ResumeDataSavingManager(const QString &resumeFolderPath);
+Utils::IO::FileDeviceOutputIterator::~FileDeviceOutputIterator()
+{
+    if (m_buffer.use_count() == 1) {
+        if (m_device->error() == QFileDevice::NoError)
+            m_device->write(*m_buffer);
+        m_buffer->clear();
+    }
+}
 
-public slots:
-    void save(const QString &filename, const QByteArray &data) const;
-    void save(const QString &filename, const std::shared_ptr<lt::entry> &data) const;
-    void remove(const QString &filename) const;
+Utils::IO::FileDeviceOutputIterator &Utils::IO::FileDeviceOutputIterator::operator=(const char c)
+{
+    m_buffer->append(c);
+    if (m_buffer->size() >= m_bufferSize) {
+        if (m_device->error() == QFileDevice::NoError)
+            m_device->write(*m_buffer);
+        m_buffer->clear();
+    }
+    return *this;
+}
 
-private:
-    const QDir m_resumeDataDir;
-};
+Utils::IO::FileDeviceOutputIterator &Utils::IO::FileDeviceOutputIterator::operator*()
+{
+    return *this;
+}
+
+Utils::IO::FileDeviceOutputIterator &Utils::IO::FileDeviceOutputIterator::operator++()
+{
+    return *this;
+}
+
+Utils::IO::FileDeviceOutputIterator &Utils::IO::FileDeviceOutputIterator::operator++(int)
+{
+    return *this;
+}
